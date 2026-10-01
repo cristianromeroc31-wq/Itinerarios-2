@@ -1,0 +1,1212 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NÉVOA · Co-creación de modelos de negocio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --cream:#F7F3EA; --cream-2:#EFE8DA; --paper:#FFFDF8; --beige:#E6DAC4; --line:#E4DBCB;
+  --sage:#A9BA9C; --sage-l:#DCE5D2; --sage-d:#6F8467; --sage-dd:#4C5F47;
+  --gold:#B8995A; --gold-l:#E3D2A6; --gold-d:#8F7338;
+  --ink:#3B4638; --muted:#7C8475; --danger:#B0655F;
+  --shadow:0 1px 2px rgba(76,95,71,.06),0 6px 18px rgba(76,95,71,.08);
+  --radius:14px;
+  --serif:"Cormorant Garamond",Georgia,serif;
+  --sans:"Montserrat",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--cream);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button,input,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+[hidden]{display:none!important}
+svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.muted{color:var(--muted)}
+.serif{font-family:var(--serif)}
+
+/* ---------- Botones ---------- */
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--sage-d);background:var(--paper);color:var(--sage-dd);border-radius:999px;padding:8px 16px;font-weight:600;font-size:12.5px;transition:.15s}
+.btn:hover{background:var(--sage-l)}
+.btn.primary{background:var(--sage-d);color:#fff;border-color:var(--sage-d)}
+.btn.primary:hover{background:var(--sage-dd)}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:#fff}
+.btn.gold:hover{background:var(--gold-d)}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.danger{border-color:var(--danger);color:var(--danger)}
+.btn.sm{padding:5px 11px;font-size:11.5px}
+.icon-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--paper);display:grid;place-items:center;color:var(--sage-dd)}
+.icon-btn:hover{background:var(--sage-l)}
+
+/* ---------- Login ---------- */
+.login{min-height:100vh;display:grid;grid-template-columns:1.05fr 1fr}
+.login-art{position:relative;overflow:hidden;background:linear-gradient(160deg,#E3EADA 0%,#CFDBC4 55%,#C3D1B6 100%);padding:56px;display:flex;flex-direction:column;justify-content:space-between}
+.login-art .logo-big{font-family:var(--serif);font-size:74px;letter-spacing:.08em;color:var(--sage-dd);line-height:1;font-weight:500}
+.login-art .logo-big svg{width:62px;height:62px;display:block;margin-bottom:10px;stroke:var(--sage-dd);fill:none;stroke-width:1.2}
+.login-art h2{font-family:var(--serif);font-weight:500;font-size:30px;margin:26px 0 10px;color:var(--sage-dd);max-width:460px;line-height:1.15}
+.login-art p{max-width:440px;color:#5B6B55;margin:0}
+.login-art .steps{display:grid;gap:10px;margin-top:28px;max-width:440px;position:relative;z-index:1}
+.login-art .steps div{display:flex;gap:12px;align-items:flex-start;background:rgba(255,253,248,.55);border:1px solid rgba(255,255,255,.7);padding:10px 14px;border-radius:12px;font-size:13px}
+.login-art .steps b{font-family:var(--serif);font-size:20px;color:var(--gold-d);line-height:1}
+.login-form{display:flex;flex-direction:column;justify-content:center;padding:56px clamp(24px,6vw,90px);background:var(--paper)}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-d);font-weight:700;margin:0 0 8px}
+.login-form h2{font-family:var(--serif);font-size:38px;font-weight:600;margin:0 0 24px;color:var(--sage-dd)}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field label{font-size:12px;font-weight:600;color:var(--sage-dd)}
+.input{border:1px solid var(--line);background:var(--cream);border-radius:10px;padding:11px 13px;outline:none;transition:.15s;width:100%}
+.input:focus{border-color:var(--sage);background:#fff;box-shadow:0 0 0 3px rgba(169,186,156,.25)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.hint{font-size:12px;color:var(--muted);margin:14px 0 0}
+.notice{font-size:12px;background:#FBF3E1;border:1px solid var(--gold-l);color:var(--gold-d);padding:10px 12px;border-radius:10px;margin-top:14px}
+.leaf{position:absolute;pointer-events:none}
+.leaf path:first-child{fill:rgba(111,132,103,.14);stroke:rgba(111,132,103,.25);stroke-width:.8}
+.leaf path:last-child{fill:none;stroke:rgba(111,132,103,.3);stroke-width:.8}
+
+/* ---------- App shell ---------- */
+.app{display:grid;grid-template-columns:232px minmax(0,1fr) 336px;min-height:100vh}
+.side{position:sticky;top:0;height:100vh;background:linear-gradient(180deg,#DFE7D6 0%,#CCD8C1 100%);padding:26px 16px 20px;display:flex;flex-direction:column;overflow:hidden;z-index:6}
+.logo{display:flex;flex-direction:column;align-items:center;margin-bottom:34px;color:var(--sage-dd)}
+.logo svg{width:34px;height:34px;stroke:var(--sage-dd);fill:none;stroke-width:1.3}
+.logo span{font-family:var(--serif);font-size:36px;letter-spacing:.08em;font-weight:500;line-height:1}
+.nav{display:flex;flex-direction:column;gap:4px;position:relative;z-index:1}
+.nav button{display:flex;align-items:center;gap:12px;border:0;background:transparent;padding:10px 14px;border-radius:10px;color:var(--sage-dd);font-weight:500;text-align:left}
+.nav button:hover{background:rgba(255,255,255,.35)}
+.nav button.on{background:var(--sage-d);color:#fff;box-shadow:0 4px 12px rgba(76,95,71,.25)}
+.side .spacer{flex:1}
+.side .logout{position:relative;z-index:1}
+.side .side-leaf{position:absolute;left:-10px;bottom:70px;width:170px;height:170px}
+.main{display:flex;flex-direction:column;min-width:0}
+.topbar{position:sticky;top:0;z-index:5;height:66px;display:flex;align-items:center;gap:14px;padding:0 28px;background:rgba(247,243,234,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.search{flex:1;max-width:460px;display:flex;align-items:center;gap:8px;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:8px 14px;color:var(--muted)}
+.search input{border:0;outline:0;background:transparent;flex:1;min-width:0}
+.pill{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:600;padding:6px 11px;border-radius:999px;background:var(--paper);border:1px solid var(--line);white-space:nowrap}
+.pill .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.pill.live .dot{background:#6FA36B;box-shadow:0 0 0 3px rgba(111,163,107,.2)}
+.pill.local .dot{background:var(--gold)}
+.pill.error .dot{background:var(--danger)}
+.me-chip{margin-left:auto;display:flex;align-items:center;gap:10px;font-weight:600;font-size:13px}
+.me-chip small{display:block;font-weight:500;color:var(--muted);font-size:11px}
+.av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:11px;font-weight:700;letter-spacing:.02em;border:2px solid var(--paper);flex:none;position:relative}
+.av.lg{width:40px;height:40px;font-size:13px}
+.av .on-dot{position:absolute;right:-2px;bottom:-2px;width:10px;height:10px;border-radius:50%;background:#6FA36B;border:2px solid var(--paper)}
+.av-stack{display:flex}
+.av-stack .av{margin-left:-6px}
+.av-stack .av:first-child{margin-left:0}
+.view{padding:28px 32px 56px}
+.page-head h1{font-family:var(--serif);font-weight:600;font-size:40px;margin:0;color:var(--sage-dd);line-height:1.1}
+.page-head p{margin:6px 0 0;color:#5E6A58;max-width:640px}
+.badge-prof{background:var(--gold);color:#fff;font-size:10.5px;padding:3px 8px;border-radius:999px;letter-spacing:.06em;text-transform:uppercase;font-weight:700}
+
+/* ---------- Panel derecho ---------- */
+.panel{position:sticky;top:0;height:100vh;overflow:auto;background:#F2EDE2;border-left:1px solid var(--line);padding:16px;display:flex;flex-direction:column;gap:14px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.pcard{overflow:hidden}
+.pcard > header{display:flex;align-items:center;gap:9px;padding:11px 14px;background:linear-gradient(180deg,#EEF2E8,#E8EDE1);border-bottom:1px solid var(--line);font-weight:600;color:var(--sage-dd);font-size:13px}
+.pcard > header .grow{flex:1}
+.pcard .body{padding:12px 14px}
+.team-av{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chat-list{list-style:none;margin:0;padding:12px 14px;max-height:280px;overflow:auto;display:flex;flex-direction:column;gap:12px}
+.msg{display:flex;gap:9px}
+.msg .who{font-size:12px;font-weight:700;color:var(--sage-dd)}
+.msg .who time{font-weight:500;color:var(--muted);margin-left:6px;font-size:11px}
+.msg .txt{font-size:12.5px;white-space:pre-wrap;word-break:break-word}
+.chip{display:inline-block;font-size:10px;padding:1px 7px;border-radius:999px;background:var(--cream-2);color:var(--gold-d);font-weight:600;margin-top:3px}
+.chat-form{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line)}
+.chat-form input{flex:1;min-width:0;border:1px solid var(--line);border-radius:999px;padding:8px 13px;background:var(--cream);outline:0}
+.chat-form input:focus{border-color:var(--sage)}
+.send{width:34px;height:34px;border-radius:50%;border:0;background:var(--sage-d);color:#fff;display:grid;place-items:center;flex:none}
+.send:hover{background:var(--sage-dd)}
+.post{display:flex;gap:10px;padding:11px 0;border-bottom:1px dashed var(--line);cursor:pointer}
+.post:last-child{border-bottom:0}
+.post:hover .ptitle{text-decoration:underline}
+.ptitle{font-weight:600;font-size:13px;color:var(--sage-dd)}
+.pmeta{font-size:11px;color:var(--muted)}
+.ptext{font-size:12.5px;margin-top:3px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+.plink{font-size:12px;color:var(--gold-d);word-break:break-all}
+.empty{color:var(--muted);font-size:12.5px;font-style:italic;padding:4px 0}
+.kv{display:grid;grid-template-columns:92px 1fr;gap:8px 10px;align-items:center;font-size:12px}
+.kv label{color:var(--muted);font-weight:600}
+.kv input{border:1px solid transparent;background:var(--cream);border-radius:8px;padding:6px 9px;outline:0;width:100%;font-size:12.5px}
+.kv input:focus{border-color:var(--sage);background:#fff}
+.kv input:disabled{background:transparent;color:var(--ink)}
+
+/* ---------- Itinerarios ---------- */
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(188px,1fr));gap:18px;margin-top:26px}
+.tcard{position:relative;overflow:hidden;text-align:left;border:1px solid var(--line);background:linear-gradient(150deg,#FFFDF8 0%,#F6EFE2 100%);border-radius:var(--radius);padding:22px 20px 18px;box-shadow:var(--shadow);min-height:196px;display:flex;flex-direction:column;transition:.18s}
+.tcard:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(76,95,71,.14);border-color:var(--sage)}
+.tcard .leaf{right:-18px;top:-14px;width:120px;height:120px;transform:rotate(18deg)}
+.tcard .leaf.b{right:40px;top:-40px;width:90px;height:90px;transform:rotate(-40deg);opacity:.7}
+.ticon{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;color:#fff;background:var(--sage);box-shadow:inset 0 0 0 4px rgba(255,255,255,.25);position:relative;z-index:1}
+.ticon.gold{background:var(--gold)}
+.ticon svg{width:24px;height:24px;stroke-width:1.5}
+.tcard h3{font-family:var(--serif);font-size:21px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:var(--sage-dd);margin:16px 0 6px;line-height:1.1;position:relative}
+.tcard p{margin:0;font-size:12.5px;color:#5E6A58;flex:1;position:relative}
+.tcard .tfoot{display:flex;align-items:center;justify-content:space-between;margin-top:14px;color:var(--sage-dd);position:relative}
+.count{font-size:11px;font-weight:600;background:var(--sage-l);color:var(--sage-dd);padding:3px 9px;border-radius:999px}
+.stage{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-d);font-weight:700;position:relative;margin-top:14px}
+
+/* ---------- Plantilla ---------- */
+.back{display:inline-flex;align-items:center;gap:6px;border:0;background:none;color:var(--sage-dd);font-weight:600;font-size:12px;padding:0;margin-bottom:14px}
+.tpl-head{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.tpl-head .ticon{width:60px;height:60px}
+.tpl-head h1{font-family:var(--serif);font-size:32px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;margin:0;color:var(--sage-dd);line-height:1.05}
+.tpl-head p{margin:3px 0 0;color:#5E6A58;font-size:13px}
+.tpl-head .grow{flex:1;min-width:220px}
+.tpl-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.snap-banner{background:#FBF3E1;border:1px solid var(--gold-l);color:var(--gold-d);border-radius:12px;padding:10px 14px;font-size:12.5px;margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.focus{display:flex;align-items:center;gap:14px;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.focus label{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--gold-d);white-space:nowrap}
+.focus input{flex:1;min-width:0;border:0;border-bottom:1px dashed var(--beige);background:transparent;padding:6px 2px;outline:0;font-size:14px}
+.focus input:focus{border-bottom-color:var(--sage-d)}
+.board{background:var(--cream-2);border:1px solid var(--line);border-radius:18px;padding:14px;gap:14px}
+.board.grid{display:grid}
+.zone{background:var(--paper);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;min-height:190px;overflow:hidden}
+.zone > header{display:flex;align-items:center;gap:8px;padding:9px 12px;background:linear-gradient(180deg,#EBF0E4,#E3EADA);border-bottom:1px solid var(--line)}
+.zone > header h4{margin:0;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--sage-dd);flex:1;font-weight:700}
+.zone > header .num{font-family:var(--serif);font-size:17px;color:var(--gold-d);font-weight:700}
+.add{width:26px;height:26px;border-radius:50%;border:1px dashed var(--sage-d);background:transparent;color:var(--sage-dd);display:grid;place-items:center;flex:none}
+.add:hover{background:var(--sage-d);color:#fff;border-style:solid}
+.zone .prompt{margin:0;padding:8px 12px 2px;font-size:11.5px;color:var(--muted)}
+.notes{display:flex;flex-wrap:wrap;gap:10px;padding:10px 12px 14px;align-content:flex-start;flex:1}
+.notes:empty::after{content:"Haz clic en + para agregar un post-it";font-size:11.5px;color:#B2AA98;font-style:italic;padding:6px 2px}
+.ro .notes:empty::after{content:"Sin aportes"}
+.note{width:138px;min-height:96px;padding:9px 10px 7px;border-radius:4px 4px 10px 4px;box-shadow:0 2px 0 rgba(0,0,0,.04),0 6px 12px rgba(76,95,71,.13);display:flex;flex-direction:column;cursor:pointer;transition:transform .12s,box-shadow .12s;position:relative}
+.note:hover{transform:rotate(-1deg) translateY(-2px);box-shadow:0 10px 18px rgba(76,95,71,.18)}
+.note .txt{font-size:12.5px;flex:1;white-space:pre-wrap;word-break:break-word;color:#3D4539}
+.note .meta{display:flex;align-items:center;justify-content:space-between;gap:4px;margin-top:8px;font-size:10.5px;color:#6A6A5D;font-weight:600}
+.note .meta span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.note .more{border:0;background:transparent;color:#6A6A5D;padding:0 2px;font-size:14px;line-height:1}
+.note.mine::before{content:"";position:absolute;top:-4px;left:50%;width:34px;height:10px;margin-left:-17px;background:rgba(255,255,255,.6);border-radius:2px;transform:rotate(-2deg)}
+
+/* matriz Customer Journey */
+.matrix{display:grid;grid-template-columns:150px repeat(3,minmax(170px,1fr));gap:10px}
+.mhead{text-align:center;font-weight:700;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--sage-dd);padding:4px 0}
+.mrow{background:var(--sage-d);color:#fff;border-radius:12px;padding:12px;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;text-align:center}
+.mrow.alt{background:#C9D3BE;color:var(--sage-dd)}
+.mcell{background:var(--paper);border:1px solid var(--line);border-radius:12px;min-height:118px;position:relative;display:flex;flex-direction:column}
+.mcell .add{position:absolute;right:8px;top:8px;background:var(--paper)}
+.mcell .notes{padding:10px 40px 10px 10px}
+.mcell .note{width:122px;min-height:78px}
+.scroll-x{overflow-x:auto;padding-bottom:4px}
+
+/* tablero libre Stakeholders */
+.free-wrap{overflow:auto}
+.free{position:relative;min-width:760px;height:620px;border-radius:18px;background:var(--paper);border:1px solid var(--line);overflow:hidden}
+.free svg.rings{position:absolute;inset:0;width:100%;height:100%}
+.free .ring-lbl{position:absolute;left:50%;transform:translateX(-50%);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--sage-d);font-weight:700;background:var(--paper);padding:1px 8px;border-radius:999px}
+.actor{position:absolute;left:50%;top:50%;width:200px;transform:translate(-50%,-50%);text-align:center;z-index:1}
+.actor b{display:block;font-family:var(--serif);font-size:20px;color:var(--gold-d)}
+.actor input{width:100%;text-align:center;border:0;border-bottom:1px dashed var(--gold);background:transparent;outline:0;padding:4px;font-weight:600;color:var(--sage-dd)}
+.free-notes{position:absolute;inset:0;z-index:2;pointer-events:none}
+.free-notes .note{position:absolute;touch-action:none;cursor:grab;pointer-events:auto}
+.free-notes .note:active{cursor:grabbing}
+.free-add{position:absolute;right:14px;bottom:14px;z-index:3}
+
+/* ---------- Inicio / listas ---------- */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:24px 0}
+.stat{padding:16px 18px}
+.stat b{display:block;font-family:var(--serif);font-size:34px;color:var(--sage-dd);line-height:1}
+.stat span{font-size:12px;color:var(--muted);font-weight:600}
+.two{display:grid;grid-template-columns:1.2fr 1fr;gap:18px}
+.sec{padding:18px 20px}
+.sec h3{font-family:var(--serif);font-size:22px;margin:0 0 12px;color:var(--sage-dd);font-weight:600}
+.prog{display:grid;grid-template-columns:30px 1fr 60px;gap:10px;align-items:center;padding:7px 0;cursor:pointer}
+.prog:hover .pname{color:var(--gold-d)}
+.prog .mini{width:30px;height:30px;border-radius:50%;background:var(--sage);color:#fff;display:grid;place-items:center}
+.prog .mini.gold{background:var(--gold)}
+.prog .mini svg{width:15px;height:15px}
+.pname{font-size:12.5px;font-weight:600}
+.bar{height:6px;background:var(--cream-2);border-radius:999px;overflow:hidden;margin-top:5px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--sage),var(--gold));border-radius:999px}
+.prog .n{font-size:11px;color:var(--muted);text-align:right}
+.act{display:flex;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
+.act:last-child{border-bottom:0}
+.list-item{display:flex;gap:14px;align-items:flex-start;padding:16px 18px;margin-bottom:12px;flex-wrap:wrap}
+.list-item .grow{flex:1;min-width:220px}
+.vnum{font-family:var(--serif);font-size:26px;color:var(--gold-d);font-weight:700;line-height:1}
+.linkbox{display:flex;gap:8px;align-items:center;background:var(--cream);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px}
+.linkbox code{flex:1;font-size:11.5px;word-break:break-all;color:var(--sage-dd)}
+
+/* ---------- Modal / toast ---------- */
+.modal{position:fixed;inset:0;background:rgba(59,70,56,.35);backdrop-filter:blur(2px);display:grid;place-items:center;z-index:50;padding:16px}
+.modal-box{background:var(--paper);border-radius:18px;max-width:560px;width:100%;max-height:90vh;overflow:auto;padding:24px 24px 20px;position:relative;box-shadow:0 20px 60px rgba(40,50,38,.25)}
+.modal-box h3{font-family:var(--serif);font-size:26px;margin:0 0 4px;color:var(--sage-dd);font-weight:600}
+.modal-x{position:absolute;right:14px;top:12px;border:0;background:none;font-size:22px;color:var(--muted)}
+.modal textarea{width:100%;min-height:110px;resize:vertical;border:1px solid var(--line);background:var(--cream);border-radius:10px;padding:11px 12px;outline:0;margin-top:12px}
+.modal textarea:focus{border-color:var(--sage);background:#fff}
+.swatches{display:flex;gap:8px;margin:12px 0 4px}
+.swatches label{width:28px;height:28px;border-radius:8px;cursor:pointer;border:2px solid transparent;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.swatches input{display:none}
+.swatches input:checked + label{border-color:var(--sage-dd)}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.modal-actions .left{margin-right:auto}
+.guide ol{padding-left:18px;margin:8px 0}
+.guide li{margin-bottom:6px}
+.example{background:var(--cream);border-left:3px solid var(--gold);padding:10px 12px;border-radius:0 10px 10px 0;font-size:12.5px;margin-top:10px}
+.comment{padding:9px 0;border-bottom:1px dashed var(--line);display:flex;gap:9px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--sage-dd);color:#fff;padding:11px 18px;border-radius:999px;font-size:13px;font-weight:600;z-index:60;box-shadow:0 10px 30px rgba(40,50,38,.3)}
+
+/* ---------- Responsive ---------- */
+@media (max-width:1200px){
+  .app{grid-template-columns:210px minmax(0,1fr)}
+  .panel{grid-column:2;position:static;height:auto;border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));align-items:start}
+}
+@media (max-width:860px){
+  .login{grid-template-columns:1fr}
+  .login-art{padding:32px 24px}
+  .login-art .logo-big{font-size:52px}
+  .two{grid-template-columns:1fr}
+}
+@media (max-width:760px){
+  .app{grid-template-columns:1fr}
+  .side{position:static;height:auto;flex-direction:row;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 16px}
+  .logo{flex-direction:row;gap:6px;margin:0 8px 0 0}
+  .logo span{font-size:24px}
+  .logo svg{width:22px;height:22px}
+  .nav{flex-direction:row;overflow-x:auto;flex:1}
+  .nav button{padding:8px 10px;white-space:nowrap}
+  .nav button .lbl{display:none}
+  .side .spacer,.side .side-leaf{display:none}
+  .panel{grid-column:1}
+  .topbar{padding:0 16px;gap:10px}
+  .me-chip .nm{display:none}
+  #syncText{display:none}
+  .view{padding:18px 16px 40px}
+  .board.grid{display:flex;flex-direction:column}
+  .page-head h1{font-size:32px}
+  .row2{grid-template-columns:1fr}
+}
+
+/* ---------- Impresión ---------- */
+@media print{
+  .side,.panel,.topbar,.tpl-actions,.add,.back,.free-add,.note .more,.snap-banner .btn{display:none!important}
+  .app{display:block}
+  body{background:#fff}
+  .view{padding:0}
+  .board,.zone,.note{box-shadow:none}
+  .zone,.note{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<!-- ======================= INICIO DE SESIÓN ======================= -->
+<div id="login" class="login" hidden>
+  <div class="login-art">
+    <div style="position:relative;z-index:1">
+      <div class="logo-big"><svg viewBox="0 0 60 60"><path d="M12 50C14 28 30 12 52 8C50 32 34 48 12 50Z"/><path d="M12 50C24 38 36 24 52 8"/></svg>NÉVOA</div>
+      <h2>Co-creación de modelos de negocio, alrededor del mismo tablero.</h2>
+      <p>Complementa el ejercicio presencial de tu equipo trabajando al mismo tiempo sobre los ocho itinerarios de innovación: post-its con tu nombre, chat, blog y entrega al profesor.</p>
+      <div class="steps">
+        <div><b>1</b><span>Escribe tu nombre real y el código de sala que compartirá todo tu equipo.</span></div>
+        <div><b>2</b><span>Elige un itinerario y agrega post-its: todos los ven al instante.</span></div>
+        <div><b>3</b><span>Cuando estén listos, presionen <em>Compartir con el profesor</em>.</span></div>
+      </div>
+    </div>
+    <svg class="leaf" style="right:-30px;bottom:-20px;width:300px;height:300px;transform:rotate(-12deg)" viewBox="0 0 120 120"><path d="M8 112C18 56 58 18 114 8C106 62 66 102 8 112Z"/><path d="M8 112C40 78 72 44 114 8"/></svg>
+    <svg class="leaf" style="right:170px;bottom:-60px;width:200px;height:200px;transform:rotate(40deg)" viewBox="0 0 120 120"><path d="M8 112C18 56 58 18 114 8C106 62 66 102 8 112Z"/><path d="M8 112C40 78 72 44 114 8"/></svg>
+    <svg class="leaf" style="right:-40px;top:-30px;width:180px;height:180px;transform:rotate(150deg)" viewBox="0 0 120 120"><path d="M8 112C18 56 58 18 114 8C106 62 66 102 8 112Z"/><path d="M8 112C40 78 72 44 114 8"/></svg>
+  </div>
+  <form id="loginForm" class="login-form" autocomplete="on">
+    <p class="eyebrow" id="lgEyebrow">Entra a la sala de tu equipo</p>
+    <h2 id="lgTitle">Te damos la bienvenida</h2>
+    <div class="field"><label for="lgName">Tu nombre real</label><input class="input" id="lgName" required maxlength="40" placeholder="Ej. Laura Pérez"></div>
+    <div class="field" id="lgRoleWrap"><label for="lgRole">Tu rol en el equipo</label><input class="input" id="lgRole" maxlength="30" placeholder="Ej. Marketing, Diseño, Finanzas"></div>
+    <div class="row2">
+      <div class="field"><label for="lgRoom">Código de la sala</label><input class="input" id="lgRoom" required maxlength="30" placeholder="EQUIPO-01" style="text-transform:uppercase"></div>
+      <div class="field" id="lgProjWrap"><label for="lgProject">Proyecto / modelo de negocio</label><input class="input" id="lgProject" maxlength="60" placeholder="Ej. NÉVOA"></div>
+    </div>
+    <div><button class="btn primary" type="submit" id="lgBtn" style="padding:11px 22px;font-size:13px">Entrar a la sala</button></div>
+    <p class="hint" id="lgHint">Todos los que entren con el mismo código de sala trabajan sobre el mismo tablero, al mismo tiempo, desde sus propias computadoras.</p>
+    <p class="notice" id="lgLocal" hidden>Modo local: aún no se han pegado los datos de Supabase dentro del archivo, así que la sala solo se comparte entre pestañas de este mismo navegador.</p>
+  </form>
+</div>
+
+<!-- ======================= APLICACIÓN ======================= -->
+<div id="app" class="app" hidden>
+  <aside class="side">
+    <div class="logo"><svg viewBox="0 0 60 60"><path d="M12 50C14 28 30 12 52 8C50 32 34 48 12 50Z"/><path d="M12 50C24 38 36 24 52 8"/></svg><span>NÉVOA</span></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="spacer"></div>
+    <svg class="leaf side-leaf" viewBox="0 0 120 120"><path d="M8 112C18 56 58 18 114 8C106 62 66 102 8 112Z"/><path d="M8 112C40 78 72 44 114 8"/></svg>
+    <nav class="nav logout"><button data-act="logout"><svg class="i" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg><span class="lbl">Cerrar sesión</span></button></nav>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <label class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input id="searchInput" placeholder="Buscar en los post-its…"></label>
+      <span class="pill" id="syncPill"><span class="dot"></span><span id="syncText">Conectando…</span></span>
+      <div class="me-chip" id="meChip"></div>
+    </div>
+    <div class="view" id="view"></div>
+  </main>
+
+  <aside class="panel" id="panel">
+    <section class="card pcard">
+      <header><svg class="i" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg><span class="grow">Equipo <small class="muted" id="teamCount"></small></span></header>
+      <div class="body"><div class="team-av" id="teamAv"></div></div>
+    </section>
+    <div id="ctxPanel" style="display:contents"></div>
+    <section class="card pcard">
+      <header><svg class="i" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="grow">Chat del equipo</span></header>
+      <ul class="chat-list" id="chatList"></ul>
+      <form class="chat-form" id="chatForm"><input id="chatInput" maxlength="500" placeholder="Escribe un mensaje…" autocomplete="off"><button class="send" aria-label="Enviar"><svg class="i" viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg></button></form>
+    </section>
+    <section class="card pcard">
+      <header><svg class="i" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg><span class="grow">Blog / Muro</span><button class="btn sm" data-act="newPost">+ Publicar</button></header>
+      <div class="body" id="blogList"></div>
+    </section>
+  </aside>
+</div>
+
+<div id="modal" class="modal" hidden><div class="modal-box" role="dialog" aria-modal="true"><button class="modal-x" data-act="closeModal" aria-label="Cerrar">×</button><div id="modalBody"></div></div></div>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+/* ==================================================================
+   CONFIGURACIÓN — pega aquí los datos de TU proyecto de Supabase
+   (Supabase → Project Settings → API). Nadie los verá en la pantalla.
+   Si los dejas vacíos, la app funciona en "modo local".
+   ================================================================== */
+const CONFIG = {
+  SUPABASE_URL: "https://uzwzryxeixxcwxezzsbd.supabase.co",       // ej. "https://abcdefghijk.supabase.co"
+  SUPABASE_ANON_KEY: "sb_publishable_yg-hDRzei3MrpTjnTZlTMQ_rtsvypf4",  // ej. "eyJhbGciOiJIUzI1NiIsInR5cCI6..."
+  TABLE: "nevoa_items"
+};
+
+/* ============================ ICONOS ============================ */
+const IC = {
+  home:'<path d="M3 10.5L12 3l9 7.5V21h-6v-6H9v6H3z"/>',
+  map:'<path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/><path d="M8 2v16M16 6v16"/>',
+  send:'<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/>',
+  users:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 16 0v1"/>',
+  route:'<circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/>',
+  pin:'<path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/><circle cx="12" cy="10" r="2.2"/>',
+  chat:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01M12 10h.01M16 10h.01"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
+  heart:'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/>',
+  bulb:'<path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V17h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/>',
+  arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+  back:'<path d="M19 12H5M11 18l-6-6 6-6"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  save:'<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>',
+  book:'<path d="M2 4h7a3 3 0 0 1 3 3v14a2 2 0 0 0-2-2H2zM22 4h-7a3 3 0 0 0-3 3v14a2 2 0 0 1 2-2h8z"/>',
+  id:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="11" r="2.5"/><path d="M5.5 17a3.5 3.5 0 0 1 7 0M15 10h3M15 14h3"/>',
+  copy:'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>',
+  print:'<path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/>'
+};
+const ico = (k, extra='') => `<svg class="i" viewBox="0 0 24 24" ${extra}>${IC[k]}</svg>`;
+const LEAF = cls => `<svg class="leaf ${cls||''}" viewBox="0 0 120 120" aria-hidden="true"><path d="M8 112C18 56 58 18 114 8C106 62 66 102 8 112Z"/><path d="M8 112C40 78 72 44 114 8"/></svg>`;
+
+/* ============================ PLANTILLAS ============================ */
+const TEMPLATES = [
+  { id:'analogos', name:'Análogos-Antílogos', stage:'Mapear / Empresa', icon:'route', gold:false,
+    short:'Busca inspiración en otros contextos y genera nuevas ideas.',
+    focus:{label:'¿Te gustaría…', placeholder:'¿Qué es nuestro proyecto? Ej. Somos una marca de cuidado personal'},
+    layout:'grid', cols:'1fr 1fr', areas:'"a b" "c d"',
+    zones:[
+      {id:'a', title:'Análogos · …ser como?', prompt:'Individuos, productos o empresas que creemos ser o a los que nos gustaría parecernos. Indica en qué, entre paréntesis.'},
+      {id:'b', title:'Antílogos · …no ser como?', prompt:'Individuos, productos o empresas que NO creemos ser ni queremos parecernos. Indica por qué.'},
+      {id:'c', title:'Conclusiones', prompt:'¿Qué podemos aprender de estos referentes?'},
+      {id:'d', title:'Ideas clave', prompt:'Las ideas más relevantes que surgieron del ejercicio.'}],
+    guide:{obj:'Encontrar, en otros contextos (marcas, industrias, personas), rasgos que queremos imitar y rasgos que queremos evitar en nuestro modelo de negocio.',
+      steps:['Escriban arriba qué es su proyecto o empresa.','Cada integrante agrega post-its en Análogos: a quién le gustaría parecerse y en qué.','Hagan lo mismo en Antílogos: a quién no quieren parecerse y por qué.','Discútanlo en el chat y resuman aprendizajes en Conclusiones e Ideas clave.'],
+      ex:'Ejemplo de la maestra — “Soy una empresa de telefonía”. Análogos: Nike (en la personalización de producto), la tienda de ultramarinos del barrio, tu madre (en la atención y los cuidados). Antílogos: fast food (muy estándar y poca calidad), spam (molestar y aparecer sin que me llamen), parque de atracciones (muchas colas para disfrutar cualquier cosa).'}},
+  { id:'stakeholders', name:'Stakeholders Maps', stage:'Mapear / Cliente', icon:'users', gold:false,
+    short:'Identifica a los actores clave de tu proyecto.',
+    focus:{label:'Actor principal', placeholder:'¿Quién está al centro?'},
+    layout:'free', zones:[{id:'mapa', title:'Mapa de actores', prompt:''}],
+    rings:['Relación directa','Relación cercana','Influencia indirecta','Entorno'],
+    guide:{obj:'Visualizar a todas las personas, grupos y organizaciones que rodean al actor principal y qué tan cerca o lejos están de él.',
+      steps:['Escriban al actor principal en el centro del mapa.','Agreguen un post-it por cada actor: clientes, proveedores, familia, instituciones, competencia…','Arrastren cada post-it al anillo que corresponde a su cercanía o influencia.','Comenten en el chat cuáles relaciones son críticas para el negocio.'],
+      ex:'Actor principal: “Mujer de 30 años que cuida su piel”. Cercanos: dermatóloga, amigas. Indirectos: influencers, tiendas departamentales. Entorno: normativa sanitaria, tendencias eco.'}},
+  { id:'persona', name:'Persona', stage:'Mapear / Cliente', icon:'user', gold:true,
+    short:'Comprende a tu usuario ideal y sus necesidades.',
+    focus:{label:'Persona · Nombre', placeholder:'Nombre de la persona. ¿Nuestro usuario es el típico…?'},
+    layout:'grid', cols:'1fr 1fr 1fr', areas:'"demo per nec" "mom per nec"',
+    zones:[
+      {id:'demo', title:'Características demográficas / Comunidad', prompt:'¿Cuál es su edad? ¿Cómo es su familia? ¿Su trabajo? ¿Su nivel cultural? ¿En quién confía y en quién se apoya?'},
+      {id:'per', title:'Persona', prompt:'¿Quién es? ¿Nuestro usuario es el típico…? Rasgos que la definen.'},
+      {id:'nec', title:'Necesidades / Motivaciones', prompt:'¿Cuáles son sus necesidades y motivaciones en el momento o escenario descrito?'},
+      {id:'mom', title:'Momento / Escenario', prompt:'¿Cuál es el momento o escenario donde la situamos?'}],
+    guide:{obj:'Construir un personaje representativo de nuestro usuario para diseñar pensando en una persona concreta.',
+      steps:['Pónganle nombre a la persona.','Describan su perfil demográfico y su comunidad.','Sitúenla en un momento o escenario concreto.','Identifiquen sus necesidades y motivaciones en ese escenario.'],
+      ex:'“Mariana, 34 años, contadora, dos hijos; confía en su hermana. Escenario: domingo por la noche preparando la semana. Necesita rutinas rápidas que la hagan sentir cuidada.”'}},
+  { id:'journey', name:'Customer Journey Map', stage:'Mapear / Cliente', icon:'pin', gold:false,
+    short:'Visualiza la experiencia de tu cliente en cada etapa.',
+    layout:'matrix', cols:['Antes','Durante','Después'],
+    rows:[{id:'acc',title:'Acciones del usuario'},{id:'con',title:'Puntos de contacto'},{id:'pas',title:'¿Qué está pasando? ¿Qué está sintiendo?'},{id:'pos',title:'🙂 Momentos positivos'},{id:'neg',title:'🙁 Momentos negativos'}],
+    guide:{obj:'Recorrer la experiencia completa del cliente —antes, durante y después— para detectar oportunidades de mejora.',
+      steps:['Describan qué hace el usuario en cada etapa.','Identifiquen los puntos de contacto con la marca (web, tienda, redes, empaque…).','Anoten qué está pasando y qué siente en cada momento.','Marquen los momentos positivos y negativos: ahí están las oportunidades.'],
+      ex:'Antes: ve un anuncio en Instagram (contacto: red social). Durante: compra en línea y espera 5 días (negativo: incertidumbre). Después: recibe un empaque cuidado (positivo: sorpresa).'}},
+  { id:'entrevista', name:'Entrevista Cualitativa', stage:'Explorar / Investigación', icon:'chat', gold:false,
+    short:'Recolecta información valiosa desde la voz del usuario.',
+    layout:'grid', cols:'1fr 1fr 1fr', areas:'"ent o1 o2" "usr o3 o4"',
+    zones:[
+      {id:'ent', title:'Entrevista', prompt:'1) Objetivos y límites del proyecto. 2) Descripción del tema a tratar. 3) Preguntas a realizar.'},
+      {id:'usr', title:'Usuario / Cliente', prompt:'1) Nombre, edad, profesión. 2) Nivel cultural. 3) ¿Cuál es su relación con el tema a tratar?'},
+      {id:'o1', title:'Observación · Descubrimientos', prompt:'¿Qué has descubierto que no supieras?'},
+      {id:'o2', title:'Observación · Pendientes', prompt:'¿Qué crees que faltó por descubrir?'},
+      {id:'o3', title:'Observación · Impacto', prompt:'¿Qué te ha impactado?'},
+      {id:'o4', title:'Observación · Profundizar', prompt:'Después de la entrevista, ¿dónde te gustaría profundizar? ¿Qué dudas te han quedado?'}],
+    guide:{obj:'Preparar, realizar y reflexionar sobre una entrevista a un usuario real para entender su punto de vista.',
+      steps:['Definan objetivos, tema y preguntas antes de entrevistar.','Registren quién es la persona entrevistada.','Después de la entrevista, cada integrante aporta sus observaciones en los cuatro cuadros.','Comparen en el chat lo que a cada quien le llamó la atención.'],
+      ex:'Pregunta abierta: “Cuéntame la última vez que compraste un producto para tu cuidado personal. ¿Qué pasó?”'}},
+  { id:'misterioso', name:'Cliente Misterioso', stage:'Explorar / Investigación', icon:'search', gold:false,
+    short:'Analiza la experiencia real de tu cliente.',
+    layout:'grid', cols:'1fr 1.5fr', areas:'"per esp" "esc des" "obj sen"',
+    zones:[
+      {id:'per', title:'Tu personaje', prompt:'¿Quién eres? Define tu personaje.'},
+      {id:'esc', title:'La escena / Situación', prompt:'¿Dónde ocurre la acción?'},
+      {id:'obj', title:'Objetivo', prompt:'¿Qué quieres comprender? ¿Qué quieres aprender?'},
+      {id:'esp', title:'Expectativas', prompt:'¿Qué esperabas que pasara y no ha pasado?'},
+      {id:'des', title:'Descubrimientos', prompt:'¿Qué has descubierto que no sabías?'},
+      {id:'sen', title:'Sentimientos', prompt:'¿Cómo te has sentido? ¿Por qué?'}],
+    guide:{obj:'Vivir en primera persona la experiencia del cliente, como si fueras uno más, para descubrir lo que no se ve desde dentro.',
+      steps:['Definan el personaje que van a interpretar, la escena y el objetivo.','Vivan la experiencia (visitar una tienda, comprar en línea, llamar a servicio al cliente…).','Registren qué esperaban, qué descubrieron y cómo se sintieron.'],
+      ex:'Personaje: estudiante con poco presupuesto. Escena: farmacia de cadena un sábado. Descubrimiento: nadie ofreció asesoría sobre el producto.'}},
+  { id:'empatia', name:'Mapa de Empatía', stage:'Mapear / Cliente', icon:'heart', gold:true,
+    short:'Ponerte en el lugar de tu usuario te ayudará a crear mejores soluciones.',
+    focus:{label:'¿De quién es este mapa?', placeholder:'Usuario o persona que estamos analizando'},
+    layout:'grid', cols:'1fr 1fr', areas:'"piensa dice" "siente hace" "oye ve"',
+    zones:[
+      {id:'piensa', title:'Piensa', prompt:'¿Qué piensa realmente? Preocupaciones, ideas, aspiraciones.'},
+      {id:'dice', title:'Dice', prompt:'¿Qué dice en voz alta? Frases, opiniones, comentarios.'},
+      {id:'siente', title:'Siente', prompt:'¿Qué emociones experimenta?'},
+      {id:'hace', title:'Hace', prompt:'¿Qué hace? Comportamientos y actitudes.'},
+      {id:'oye', title:'Oye', prompt:'¿Qué escucha de amigos, familia, medios o influencers?'},
+      {id:'ve', title:'Ve', prompt:'¿Qué ve en su entorno y en el mercado?'}],
+    guide:{obj:'Ponerse en los zapatos del usuario, entendiendo lo que piensa, siente, dice, hace, oye y ve.',
+      steps:['Escriban de quién es el mapa.','Llenen los seis cuadros, idealmente con datos de entrevistas u observación.','Busquen contradicciones entre lo que dice y lo que hace: suelen revelar necesidades ocultas.'],
+      ex:'Dice: “no tengo tiempo para mí”. Hace: pasa 40 minutos en redes cada noche. Siente: culpa y cansancio.'}},
+  { id:'desafio', name:'Desafío de Diseño', stage:'Explorar / Síntesis', icon:'bulb', gold:true,
+    short:'Define el reto y genera ideas para resolverlo.',
+    focus:{label:'¿Cómo podría…?', placeholder:'¿Cómo podríamos…?'},
+    layout:'grid', cols:'1fr 1fr', areas:'"nec nec" "dol gan" "des des"',
+    zones:[
+      {id:'nec', title:'Necesidad', prompt:'¿Qué necesita realmente el usuario?'},
+      {id:'dol', title:'Dolor', prompt:'¿Qué le frustra, le molesta o le cuesta?'},
+      {id:'gan', title:'Ganancia', prompt:'¿Qué beneficio o alegría busca obtener?'},
+      {id:'des', title:'Desafío', prompt:'Redacten el reto final: ¿Cómo podríamos… para que…?'}],
+    guide:{obj:'Sintetizar todo lo aprendido en un reto claro y accionable, formulado como pregunta “¿Cómo podríamos…?”.',
+      steps:['Recuperen la necesidad principal del usuario.','Anoten sus dolores y las ganancias que busca.','Redacten juntos el desafío final y escríbanlo también arriba.'],
+      ex:'“¿Cómo podríamos ofrecer una rutina de cuidado de 5 minutos para que mamás trabajadoras se sientan atendidas sin sentir culpa?”'}}
+];
+const TPL = Object.fromEntries(TEMPLATES.map(t => [t.id, t]));
+function zonesOf(t){ return t.layout==='matrix' ? t.rows.flatMap(r => t.cols.map((c,i) => ({id:r.id+'_'+i, title:r.title+' · '+c}))) : t.zones; }
+
+/* ============================ UTILIDADES ============================ */
+const $ = (s, el=document) => el.querySelector(s);
+const $$ = (s, el=document) => [...el.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function uid(){ try { return crypto.randomUUID(); } catch(e){ return 'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,10); } }
+const LS = {
+  get(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } },
+  set(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} },
+  del(k){ try { localStorage.removeItem(k); } catch(e){} }
+};
+const AV_COLORS = ['#8FA68A','#B8995A','#C4A27A','#7E9C8F','#9F8DB3','#C28C86','#86A0B5','#9A9864'];
+function hash(s){ let h=0; for (const c of String(s).toLowerCase()) h = (h*31 + c.charCodeAt(0)) | 0; return Math.abs(h); }
+const avColor = n => AV_COLORS[hash(n) % AV_COLORS.length];
+function initials(n){ const p = String(n||'?').trim().split(/\s+/); return ((p[0]||'?')[0] + ((p[1]||'')[0]||'')).toUpperCase(); }
+const avatar = (n, online, cls='') => `<span class="av ${cls}" style="background:${avColor(n)}" title="${esc(n)}">${esc(initials(n))}${online?'<i class="on-dot"></i>':''}</span>`;
+const NOTE_COLORS = [{id:'verde',c:'#DCE8D2'},{id:'durazno',c:'#F7E0B6'},{id:'lila',c:'#E6DAF3'},{id:'rosa',c:'#F6D2D8'},{id:'azul',c:'#D4E3EF'},{id:'crema',c:'#F2E8CC'}];
+const noteColor = id => (NOTE_COLORS.find(x => x.id === id) || NOTE_COLORS[0]).c;
+const defaultColor = n => NOTE_COLORS[hash(n) % NOTE_COLORS.length].id;
+const ts = s => Date.parse(s) || 0;
+function fmtTime(iso){
+  const d = new Date(iso), now = new Date();
+  const t = d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+  return d.toDateString() === now.toDateString() ? t : d.toLocaleDateString('es-MX',{day:'numeric',month:'short'})+' · '+t;
+}
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.hidden=false; clearTimeout(toast.h); toast.h=setTimeout(()=>t.hidden=true, 2600); }
+async function copyText(txt){
+  try { await navigator.clipboard.writeText(txt); toast('Enlace copiado'); }
+  catch(e){ window.prompt('Copia este enlace:', txt); }
+}
+const baseUrl = () => location.origin + location.pathname;
+const inviteLink = () => baseUrl() + '?sala=' + encodeURIComponent(S.me.room);
+const profLink = () => baseUrl() + '?sala=' + encodeURIComponent(S.me.room) + '&profesor=1';
+
+/* ============================ ESTADO ============================ */
+const S = { me:null, view:'home', tpl:null, snap:null, items:new Map(), online:new Map(), openPost:null, dragging:null, search:'' };
+const ro = () => !!(S.me && (S.me.prof || S.snap));
+const live = kind => [...S.items.values()].filter(r => r.kind === kind && !(r.payload && r.payload.deleted));
+const byCreated = (a,b) => ts(a.created_at) - ts(b.created_at);
+function notesOf(tpl, zone){
+  const src = S.snap ? (S.snap.payload.notes || []) : live('note');
+  return src.filter(n => n.template === tpl && (zone == null || n.zone === zone)).sort(byCreated);
+}
+const fieldId = (tpl,key) => S.me.room + '|f|' + tpl + '|' + key;
+function fieldVal(tpl, key){
+  if (S.snap) return (S.snap.payload.fields || {})[tpl+'|'+key] || '';
+  const r = S.items.get(fieldId(tpl,key)); return r && r.payload ? (r.payload.value || '') : '';
+}
+function members(){
+  const m = new Map();
+  live('member').forEach(r => m.set(r.author.toLowerCase(), {name:r.author, role:r.payload.role||''}));
+  S.online.forEach(p => { if (!p.prof && !m.has(p.name.toLowerCase())) m.set(p.name.toLowerCase(), {name:p.name, role:p.role||''}); });
+  return [...m.values()].sort((a,b) => a.name.localeCompare(b.name));
+}
+const isOnline = name => [...S.online.values()].some(p => p.name.toLowerCase() === name.toLowerCase());
+
+/* ============================ DATOS / SINCRONIZACIÓN ============================ */
+function applyRow(row){
+  if (!row || !row.id) return;
+  const prev = S.items.get(row.id);
+  if (prev && ts(prev.updated_at) > ts(row.updated_at)) return;
+  S.items.set(row.id, row);
+  if (ts(row.updated_at) > Sync.maxSeen) Sync.maxSeen = ts(row.updated_at);
+  scheduleRefresh();
+}
+function put(r){
+  const now = new Date().toISOString(), prev = S.items.get(r.id);
+  const row = { id:r.id, room:S.me.room, kind:r.kind, template:r.template ?? null, zone:r.zone ?? null,
+    author: r.author ?? (prev ? prev.author : S.me.name), payload:r.payload || {},
+    created_at: prev ? prev.created_at : now, updated_at: now };
+  applyRow(row); Sync.push(row); return row;
+}
+function setStatus(kind, msg){
+  S.status = kind;
+  const p = $('#syncPill'); p.className = 'pill ' + kind;
+  $('#syncText').textContent = msg || ({live:'En vivo · equipo sincronizado', local:'Modo local (este navegador)', error:'Sin conexión · reintentando', connecting:'Conectando…'})[kind];
+  if (kind === 'error' && msg) p.title = msg;
+}
+
+const Sync = {
+  mode:'local', sb:null, ch:null, pending:new Map(), bc:null, maxSeen:0,
+  configured(){ return !!(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY); },
+  async start(){
+    if (this.configured() && window.supabase && window.supabase.createClient) {
+      this.mode = 'supabase';
+      try { await this.startSupabase(); return; }
+      catch(e){ console.error(e); setStatus('error', 'No se pudo conectar a Supabase: ' + (e.message||e)); return; }
+    }
+    this.startLocal();
+  },
+  async startSupabase(){
+    setStatus('connecting');
+    this.sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, { realtime:{ params:{ eventsPerSecond:20 } } });
+    await this.loadAll();
+    const room = S.me.room;
+    this.ch = this.sb.channel('nevoa-' + room, { config:{ presence:{ key:S.me.id } } })
+      .on('postgres_changes', { event:'*', schema:'public', table:CONFIG.TABLE, filter:'room=eq.' + room }, p => { if (p.new && p.new.id) applyRow(p.new); })
+      .on('presence', { event:'sync' }, () => {
+        const st = this.ch.presenceState(); S.online = new Map();
+        Object.values(st).forEach(arr => arr.forEach(p => S.online.set(p.uid, p)));
+        scheduleRefresh();
+      })
+      .subscribe(async status => {
+        if (status === 'SUBSCRIBED') {
+          setStatus('live');
+          await this.ch.track({ uid:S.me.id, name:S.me.name, role:S.me.role||'', prof:!!S.me.prof, at:Date.now() });
+          this.catchUp();
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') setStatus('error', 'Tiempo real no disponible; revisa que corriste el SQL');
+      });
+    setInterval(() => this.catchUp(), 25000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) this.catchUp(); });
+  },
+  async loadAll(){
+    let from = 0;
+    for (;;) {
+      const { data, error } = await this.sb.from(CONFIG.TABLE).select('*').eq('room', S.me.room).order('updated_at').range(from, from + 999);
+      if (error) throw new Error(error.message);
+      data.forEach(applyRow);
+      if (data.length < 1000) break;
+      from += 1000;
+    }
+  },
+  async catchUp(){
+    if (!this.sb) return;
+    const since = new Date(Math.max(0, this.maxSeen - 120000)).toISOString();
+    const { data, error } = await this.sb.from(CONFIG.TABLE).select('*').eq('room', S.me.room).gt('updated_at', since).order('updated_at').limit(1000);
+    if (error) { setStatus('error', error.message); return; }
+    data.forEach(applyRow);
+    if (S.status === 'error' && this.ch && this.ch.state === 'joined') setStatus('live');
+    if (this.pending.size) this.flush();
+  },
+  push(row){
+    if (this.mode === 'supabase') { this.pending.set(row.id, row); clearTimeout(this.ft); this.ft = setTimeout(() => this.flush(), 200); }
+    else this.localWrite(row);
+  },
+  async flush(){
+    if (this.mode !== 'supabase') return true;
+    if (!this.pending.size) return true;
+    if (!this.sb) return false;
+    const rows = [...this.pending.values()]; this.pending.clear();
+    const { error } = await this.sb.from(CONFIG.TABLE).upsert(rows);
+    if (error) {
+      rows.forEach(r => { if (!this.pending.has(r.id)) this.pending.set(r.id, r); });
+      setStatus('error', error.message);
+      clearTimeout(this.rt); this.rt = setTimeout(() => this.flush(), 4000);
+      return false;
+    }
+    if (S.status === 'error') setStatus('live');
+    return this.pending.size ? this.flush() : true;
+  },
+  /* --- modo local (sin Supabase): comparte entre pestañas del mismo navegador --- */
+  key(){ return 'nevoa_local_' + S.me.room; },
+  startLocal(){
+    this.mode = 'local';
+    (LS.get(this.key()) || []).forEach(applyRow);
+    const me = { uid:S.me.id, name:S.me.name, role:S.me.role||'', prof:!!S.me.prof, seen:Date.now() };
+    S.online.set(me.uid, me);
+    try {
+      this.bc = new BroadcastChannel('nevoa_' + S.me.room);
+      this.bc.onmessage = e => {
+        const m = e.data || {};
+        if (m.type === 'row') applyRow(m.row);
+        if (m.type === 'hi') { S.online.set(m.p.uid, { ...m.p, seen:Date.now() }); scheduleRefresh(); }
+        if (m.type === 'bye') { S.online.delete(m.uid); scheduleRefresh(); }
+      };
+      const hi = () => this.bc.postMessage({ type:'hi', p:me });
+      hi(); setInterval(() => {
+        hi(); const now = Date.now();
+        S.online.forEach((p,k) => { if (k !== me.uid && now - p.seen > 20000) S.online.delete(k); });
+        scheduleRefresh();
+      }, 8000);
+      addEventListener('beforeunload', () => this.bc.postMessage({ type:'bye', uid:me.uid }));
+    } catch(e){}
+    addEventListener('storage', e => { if (e.key === this.key()) (LS.get(this.key()) || []).forEach(applyRow); });
+    setStatus('local');
+  },
+  localWrite(row){
+    const map = new Map((LS.get(this.key()) || []).map(r => [r.id, r]));
+    map.set(row.id, row); LS.set(this.key(), [...map.values()]);
+    if (this.bc) this.bc.postMessage({ type:'row', row });
+  },
+  leave(){ try { if (this.ch) { this.ch.untrack(); this.sb.removeChannel(this.ch); } if (this.bc) this.bc.postMessage({ type:'bye', uid:S.me.id }); } catch(e){} }
+};
+
+/* ============================ RENDER ============================ */
+let rq = false;
+function scheduleRefresh(){ if (rq) return; rq = true; requestAnimationFrame(() => { rq = false; refreshAll(); }); }
+function refreshAll(){
+  if (!S.me || $('#app').hidden) return;
+  if (S.view === 'template') refreshBoard(); else renderView();
+  refreshFields(); renderChat(); renderBlog(); renderTeam();
+  if (S.openPost) renderPostComments();
+}
+
+function renderNav(){
+  const items = S.me.prof
+    ? [['entregas','send','Entregas'],['itinerarios','map','Itinerarios'],['equipo','users','Equipo']]
+    : [['home','home','Inicio'],['itinerarios','map','Itinerarios'],['entregas','send','Entregas'],['equipo','users','Equipo']];
+  const cur = S.view === 'template' || S.view === 'snapshot' ? (S.snap ? 'entregas' : 'itinerarios') : S.view;
+  $('#nav').innerHTML = items.map(([v,i,l]) => `<button data-go="${v}" class="${cur===v?'on':''}">${ico(i)}<span class="lbl">${l}</span></button>`).join('');
+  $('#meChip').innerHTML = `${S.me.prof?'<span class="badge-prof">Profesor · solo lectura</span>':''}${avatar(S.me.name)}<div class="nm">${esc(S.me.name)}<small>Sala ${esc(S.me.room)}${S.me.role?' · '+esc(S.me.role):''}</small></div>`;
+}
+
+function go(view, opts = {}){
+  if ('snap' in opts) S.snap = opts.snap;
+  else if (view !== 'template' && view !== 'snapshot') S.snap = null;
+  if (opts.tpl) S.tpl = opts.tpl;
+  S.view = view;
+  if (view !== 'search') { S.search = ''; $('#searchInput').value = ''; }
+  renderNav(); renderView(); renderCtx(); refreshFields();
+  window.scrollTo(0, 0);
+}
+
+function renderView(){
+  const v = $('#view');
+  const fn = { home:viewHome, itinerarios:viewItinerarios, template:viewTemplate, entregas:viewEntregas, snapshot:viewSnapshot, equipo:viewEquipo, search:viewSearch }[S.view] || viewHome;
+  v.innerHTML = fn();
+  if (S.view === 'template') refreshBoard();
+}
+
+/* ---------- Inicio ---------- */
+function progressOf(t){
+  const ns = notesOf(t.id);
+  if (t.layout === 'free') return { n:ns.length, pct:Math.min(1, ns.length/6) };
+  const zs = zonesOf(t); const filled = zs.filter(z => ns.some(n => n.zone === z.id)).length;
+  return { n:ns.length, pct: filled / zs.length };
+}
+function viewHome(){
+  const notes = live('note'), subs = live('submission'), chats = live('chat');
+  const proj = fieldVal('global','proyecto');
+  const recent = [...notes].sort((a,b) => ts(b.updated_at) - ts(a.updated_at)).slice(0, 7);
+  return `
+  <div class="page-head"><h1>Hola, ${esc(S.me.name.split(' ')[0])}</h1>
+    <p>Sala <b>${esc(S.me.room)}</b>${proj ? ' · Proyecto: <b>'+esc(proj)+'</b>' : ''}. Todo lo que agregues aquí lo ve tu equipo al instante.</p></div>
+  <div class="stats">
+    <div class="card stat"><b>${notes.length}</b><span>Post-its del equipo</span></div>
+    <div class="card stat"><b>${members().length}</b><span>Integrantes</span></div>
+    <div class="card stat"><b>${chats.length}</b><span>Mensajes en el chat</span></div>
+    <div class="card stat"><b>${subs.length}</b><span>Entregas al profesor</span></div>
+  </div>
+  <div class="two">
+    <section class="card sec"><h3>Avance por itinerario</h3>
+      ${TEMPLATES.map(t => { const p = progressOf(t); return `
+        <div class="prog" data-tpl="${t.id}"><span class="mini ${t.gold?'gold':''}">${ico(t.icon)}</span>
+          <div><div class="pname">${esc(t.name)}</div><div class="bar"><i style="width:${Math.round(p.pct*100)}%"></i></div></div>
+          <span class="n">${p.n} post-it${p.n===1?'':'s'}</span></div>`; }).join('')}
+    </section>
+    <section class="card sec"><h3>Actividad reciente</h3>
+      ${recent.length ? recent.map(n => `<div class="act">${avatar(n.author)}<div><b>${esc(n.author)}</b> <span class="muted">en ${esc(TPL[n.template]?.name||'')}</span><div>${esc(n.payload.text)}</div><span class="pmeta">${fmtTime(n.updated_at)}</span></div></div>`).join('')
+        : '<p class="empty">Aún no hay aportes. Entra a un itinerario y agrega el primer post-it.</p>'}
+      <div style="margin-top:14px"><button class="btn primary" data-go="itinerarios">Ir a los itinerarios ${ico('arrow')}</button></div>
+    </section>
+  </div>`;
+}
+
+/* ---------- Itinerarios ---------- */
+function viewItinerarios(){
+  return `
+  <div class="page-head"><h1>Itinerarios</h1>
+    <p>Aquí encontrarás las 8 plantillas para desarrollar tu modelo de negocio. Selecciona la que necesites y comienza a trabajar en equipo.</p></div>
+  <div class="tgrid">
+    ${TEMPLATES.map(t => { const n = notesOf(t.id).length; return `
+      <button class="tcard" data-tpl="${t.id}">${LEAF()}${LEAF('b')}
+        <span class="ticon ${t.gold?'gold':''}">${ico(t.icon)}</span>
+        <span class="stage">${esc(t.stage)}</span>
+        <h3>${esc(t.name)}</h3>
+        <p>${esc(t.short)}</p>
+        <span class="tfoot"><span class="count">${n} post-it${n===1?'':'s'}</span>${ico('arrow')}</span>
+      </button>`; }).join('')}
+  </div>`;
+}
+
+/* ---------- Plantilla ---------- */
+function viewTemplate(){
+  const t = TPL[S.tpl]; if (!t) return viewItinerarios();
+  const R = ro();
+  const addBtn = (zone, cls='add') => R ? '' : `<button class="${cls}" data-add="${zone}" title="Agregar post-it" aria-label="Agregar post-it">${ico('plus')}</button>`;
+  let board = '';
+  if (t.layout === 'grid') {
+    board = `<div class="board grid ${R?'ro':''}" style="grid-template-columns:${t.cols};grid-template-areas:${esc(t.areas)}">
+      ${t.zones.map((z,i) => `<section class="zone" style="grid-area:${z.id}">
+        <header><span class="num">${i+1}.</span><h4>${esc(z.title)}</h4>${addBtn(z.id)}</header>
+        <p class="prompt">${esc(z.prompt)}</p><div class="notes" data-notes="${z.id}"></div></section>`).join('')}
+    </div>`;
+  } else if (t.layout === 'matrix') {
+    board = `<div class="board scroll-x ${R?'ro':''}"><div class="matrix">
+      <div></div>${t.cols.map(c => `<div class="mhead">${esc(c)}</div>`).join('')}
+      ${t.rows.map((r,ri) => `<div class="mrow ${ri>=3?'alt':''}">${esc(r.title)}</div>` +
+        t.cols.map((c,ci) => `<div class="mcell">${addBtn(r.id+'_'+ci)}<div class="notes" data-notes="${r.id}_${ci}"></div></div>`).join('')).join('')}
+    </div></div>`;
+  } else {
+    const ry = [290,225,160,95], rx = [480,370,260,150];
+    board = `<div class="free-wrap"><div class="free ${R?'ro':''}">
+      <svg class="rings" viewBox="0 0 1000 600" preserveAspectRatio="none">
+        ${rx.map((x,i) => `<ellipse cx="500" cy="300" rx="${x}" ry="${ry[i]}" fill="${['#FBF8F1','#F6F0E4','#F1EADB','#EBE3D1'][i]}" stroke="#A9BA9C" stroke-width="1.4" stroke-dasharray="3 5" vector-effect="non-scaling-stroke"/>`).join('')}
+        <ellipse cx="500" cy="300" rx="105" ry="62" fill="#E6DAC4" stroke="#B8995A" stroke-width="1.2" vector-effect="non-scaling-stroke"/>
+      </svg>
+      ${t.rings.slice().reverse().map((l,i) => `<span class="ring-lbl" style="top:calc(${(300-ry[i])/6}% + 6px)">${esc(l)}</span>`).join('')}
+      <div class="actor"><b>Actor principal</b><input data-field="${t.id}|focus" placeholder="${esc(t.focus.placeholder)}" maxlength="60" ${R?'disabled':''}></div>
+      <div class="free-notes" data-notes="mapa"></div>
+      ${R ? '' : `<button class="btn primary free-add" data-add="mapa">${ico('plus')} Agregar actor</button>`}
+    </div></div>`;
+  }
+  const snapBanner = S.snap ? `<div class="snap-banner">${ico('send')}<span>Estás viendo la <b>entrega versión ${S.snap.payload.version}</b> enviada por ${esc(S.snap.author)} el ${fmtTime(S.snap.created_at)}. Solo lectura.</span></div>`
+    : S.me.prof ? `<div class="snap-banner">${ico('book')}<span>Vista en vivo del tablero del equipo (solo lectura).</span></div>` : '';
+  return `
+  <button class="back" data-back>${ico('back')} ${S.snap ? 'Entrega v'+S.snap.payload.version : 'Itinerarios'}</button>
+  ${snapBanner}
+  <div class="tpl-head">
+    <span class="ticon ${t.gold?'gold':''}">${ico(t.icon)}</span>
+    <div class="grow"><h1>${esc(t.name)}</h1><p>${esc(t.short)} <span class="muted">· <span id="tplCount"></span></span></p></div>
+    <div class="tpl-actions">
+      <span class="av-stack" id="tplOnline"></span>
+      ${R ? `<button class="btn" data-act="print">${ico('print')} Imprimir / PDF</button>`
+          : `<button class="btn" data-act="save">${ico('save')} Guardar cambios</button>
+             <button class="btn primary" data-act="share">${ico('send')} Compartir con el profesor</button>`}
+    </div>
+  </div>
+  ${t.focus && t.layout !== 'free' ? `<div class="focus"><label>${esc(t.focus.label)}</label><input data-field="${t.id}|focus" placeholder="${esc(t.focus.placeholder)}" maxlength="120" ${R?'disabled':''}></div>` : ''}
+  ${board}`;
+}
+
+function noteHTML(n, free){
+  const mine = n.author === S.me.name;
+  const pos = free ? `left:${n.payload.x ?? 5}%;top:${n.payload.y ?? 5}%;` : '';
+  return `<div class="note ${mine?'mine':''}" data-id="${esc(n.id)}" style="${pos}background:${noteColor(n.payload.color)}" title="Agregado por ${esc(n.author)} · ${fmtTime(n.created_at)}">
+    <div class="txt">${esc(n.payload.text)}</div>
+    <div class="meta"><span>${esc(n.author)}</span>${ro()?'':'<button class="more" data-edit="'+esc(n.id)+'" aria-label="Opciones">⋯</button>'}</div></div>`;
+}
+function refreshBoard(){
+  const t = TPL[S.tpl]; if (!t) return;
+  $$('[data-notes]').forEach(box => {
+    const zone = box.dataset.notes, free = t.layout === 'free';
+    if (free && S.dragging) return;
+    box.innerHTML = notesOf(t.id, zone).map(n => noteHTML(n, free)).join('');
+  });
+  const c = $('#tplCount'); if (c) { const n = notesOf(t.id).length; c.textContent = n + ' post-it' + (n===1?'':'s'); }
+  const o = $('#tplOnline'); if (o) o.innerHTML = [...S.online.values()].slice(0,6).map(p => avatar(p.name, true)).join('');
+}
+function refreshFields(){
+  $$('[data-field]').forEach(el => {
+    if (el === document.activeElement) return;
+    const [t,k] = el.dataset.field.split('|'); const v = fieldVal(t,k);
+    if (el.value !== v) el.value = v;
+  });
+}
+
+/* ---------- Panel contextual (guía + datos) ---------- */
+function renderCtx(){
+  const box = $('#ctxPanel');
+  if (S.view !== 'template' || !TPL[S.tpl]) { box.innerHTML = ''; return; }
+  const t = TPL[S.tpl], R = ro(), dis = R ? 'disabled' : '';
+  const proj = fieldVal('global','proyecto'), next = live('submission').length + 1;
+  box.innerHTML = `
+  <section class="card pcard"><header>${ico('book')}<span class="grow">Guía de la plantilla</span></header>
+    <div class="body"><p style="margin:0 0 10px;font-size:12.5px">${esc(t.guide.obj)}</p><button class="btn sm" data-act="guide">${ico('book')} Ver guía completa</button></div></section>
+  <section class="card pcard"><header>${ico('id')}<span class="grow">Datos del proyecto</span></header>
+    <div class="body kv">
+      <label>Proyecto</label><input data-field="${t.id}|proyecto" placeholder="${esc(proj||'Nombre del proyecto')}" ${dis}>
+      <label>Diseñado por</label><input data-field="${t.id}|disenado" placeholder="${esc(members().map(m=>m.name.split(' ')[0]).join(', ')||'Equipo')}" ${dis}>
+      <label>Fecha</label><input data-field="${t.id}|fecha" placeholder="${new Date().toLocaleDateString('es-MX')}" ${dis}>
+      <label>Versión</label><input data-field="${t.id}|version" placeholder="${next}" ${dis}>
+    </div></section>`;
+}
+
+/* ---------- Entregas ---------- */
+function viewEntregas(){
+  const subs = live('submission').sort((a,b) => ts(b.created_at) - ts(a.created_at));
+  const localWarn = Sync.mode === 'local' ? '<p class="notice">Estás en modo local: el enlace del profesor solo funcionará cuando se configure Supabase en el archivo y la app esté publicada.</p>' : '';
+  return `
+  <div class="page-head"><h1>Entregas al profesor</h1>
+    <p>${S.me.prof ? 'Versiones que el equipo compartió contigo. Abre cualquiera para revisarla plantilla por plantilla.' : 'Cada vez que el equipo presiona “Compartir con el profesor” se guarda aquí una versión congelada del trabajo.'}</p></div>
+  ${S.me.prof ? '' : `<div class="card sec" style="margin:22px 0 18px"><b>Enlace para el profesor</b><div class="linkbox"><code>${esc(profLink())}</code><button class="btn sm" data-copy="prof">${ico('copy')} Copiar</button></div>${localWarn}</div>`}
+  <div style="margin-top:18px">
+  ${subs.length ? subs.map(s => `<div class="card list-item">
+      <span class="vnum">v${s.payload.version}</span>
+      <div class="grow"><b>Versión ${s.payload.version}</b> <span class="muted">· ${fmtTime(s.created_at)} · enviada por ${esc(s.author)}</span>
+        <div style="margin-top:4px;font-size:12.5px">${s.payload.message ? '“'+esc(s.payload.message)+'”' : '<span class="muted">Sin mensaje</span>'}</div>
+        <div class="pmeta" style="margin-top:4px">${(s.payload.notes||[]).length} post-its · Equipo: ${esc((s.payload.members||[]).join(', '))}</div></div>
+      <button class="btn primary sm" data-snap="${esc(s.id)}">Ver entrega ${ico('arrow')}</button></div>`).join('')
+    : `<p class="empty">Todavía no hay entregas.${S.me.prof ? '' : ' Cuando el equipo esté listo, abre cualquier itinerario y presiona “Compartir con el profesor”.'}</p>`}
+  </div>`;
+}
+function viewSnapshot(){
+  const s = S.snap; if (!s) return viewEntregas();
+  return `
+  <button class="back" data-go="entregas">${ico('back')} Entregas</button>
+  <div class="page-head"><h1>Entrega versión ${s.payload.version}</h1>
+    <p>Enviada por <b>${esc(s.author)}</b> el ${fmtTime(s.created_at)} ${s.payload.message ? '“'+esc(s.payload.message)+'”' : ''}</p></div>
+  <div class="tgrid">
+    ${TEMPLATES.map(t => { const n = (s.payload.notes||[]).filter(x => x.template === t.id).length; return `
+      <button class="tcard" data-tpl="${t.id}">${LEAF()}<span class="ticon ${t.gold?'gold':''}">${ico(t.icon)}</span>
+        <h3>${esc(t.name)}</h3><p>${esc(t.short)}</p>
+        <span class="tfoot"><span class="count">${n} post-it${n===1?'':'s'}</span>${ico('arrow')}</span></button>`; }).join('')}
+  </div>`;
+}
+
+/* ---------- Equipo ---------- */
+function viewEquipo(){
+  const ms = members(), notes = live('note'), chats = live('chat');
+  return `
+  <div class="page-head"><h1>Equipo</h1><p>Integrantes reales de la sala <b>${esc(S.me.room)}</b>. El punto verde indica quién está conectado ahora.</p></div>
+  ${S.me.prof ? '' : `<div class="card sec" style="margin:22px 0 18px"><b>Invita a tu equipo</b><p class="muted" style="margin:4px 0 0;font-size:12.5px">Comparte este enlace: entrarán directo a tu sala después de escribir su nombre.</p><div class="linkbox"><code>${esc(inviteLink())}</code><button class="btn sm" data-copy="invite">${ico('copy')} Copiar</button></div></div>`}
+  <div class="tgrid" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr))">
+  ${ms.length ? ms.map(m => { const n = notes.filter(x => x.author === m.name).length, c = chats.filter(x => x.author === m.name).length; return `
+    <div class="card sec" style="display:flex;gap:12px;align-items:center">${avatar(m.name, isOnline(m.name), 'lg')}
+      <div><b>${esc(m.name)}</b><div class="pmeta">${esc(m.role||'Integrante')} · ${isOnline(m.name)?'en línea':'desconectado'}</div>
+      <div class="pmeta">${n} post-its · ${c} mensajes</div></div></div>`; }).join('') : '<p class="empty">Aún no hay integrantes.</p>'}
+  </div>`;
+}
+
+/* ---------- Búsqueda ---------- */
+function viewSearch(){
+  const q = S.search.toLowerCase();
+  const res = live('note').filter(n => (n.payload.text||'').toLowerCase().includes(q) || n.author.toLowerCase().includes(q));
+  return `<div class="page-head"><h1>Resultados</h1><p>${res.length} post-it${res.length===1?'':'s'} para “${esc(S.search)}”.</p></div>
+  <div style="margin-top:18px">${res.map(n => `<div class="card list-item" style="cursor:pointer" data-tpl="${esc(n.template)}">
+    <div class="note" style="background:${noteColor(n.payload.color)};pointer-events:none"><div class="txt">${esc(n.payload.text)}</div><div class="meta"><span>${esc(n.author)}</span></div></div>
+    <div class="grow"><b>${esc(TPL[n.template]?.name||'')}</b><div class="pmeta">${esc(zoneTitle(n.template,n.zone))} · ${fmtTime(n.updated_at)}</div></div></div>`).join('')}</div>`;
+}
+function zoneTitle(tpl, zone){ const t = TPL[tpl]; if (!t) return ''; const z = zonesOf(t).find(z => z.id === zone); return z ? z.title : ''; }
+
+/* ---------- Panel: equipo, chat, blog ---------- */
+function renderTeam(){
+  const ms = members();
+  $('#teamCount').textContent = '· ' + ms.length + ' integrante' + (ms.length===1?'':'s');
+  $('#teamAv').innerHTML = ms.map(m => avatar(m.name, isOnline(m.name))).join('') +
+    (S.me.prof ? '' : `<button class="icon-btn" data-copy="invite" title="Copiar enlace de invitación">${ico('plus')}</button>`);
+}
+function renderChat(){
+  const list = $('#chatList');
+  const nearBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 60;
+  const msgs = live('chat').sort(byCreated).slice(-120);
+  const sig = msgs.length + '|' + (msgs.length ? msgs[msgs.length-1].id : '');
+  if (list.dataset.sig === sig) return; list.dataset.sig = sig;
+  list.innerHTML = msgs.length ? msgs.map(m => `<li class="msg">${avatar(m.author)}<div><div class="who">${esc(m.author)}<time>${fmtTime(m.created_at)}</time></div>
+      <div class="txt">${esc(m.payload.text)}</div>${m.payload.tpl && TPL[m.payload.tpl] ? `<span class="chip">${esc(TPL[m.payload.tpl].name)}</span>` : ''}</div></li>`).join('')
+    : '<li class="empty">Sin mensajes todavía. ¡Saluda a tu equipo!</li>';
+  if (nearBottom || !list.dataset.init) { list.scrollTop = list.scrollHeight; list.dataset.init = '1'; }
+}
+const safeLink = u => /^https?:\/\//i.test(u || '') ? u : '';
+function renderBlog(){
+  const posts = live('blog').sort((a,b) => ts(b.created_at) - ts(a.created_at));
+  const comments = live('blogc');
+  $('#blogList').innerHTML = posts.length ? posts.map(p => { const c = comments.filter(x => x.payload.parent === p.id).length; return `
+    <div class="post" data-post="${esc(p.id)}">${avatar(p.author)}<div style="min-width:0">
+      <div class="ptitle">${esc(p.payload.title || 'Sin título')}</div>
+      <div class="pmeta">${esc(p.author)} · ${fmtTime(p.created_at)} · ${c} comentario${c===1?'':'s'}</div>
+      ${p.payload.text ? `<div class="ptext">${esc(p.payload.text)}</div>` : ''}
+      ${safeLink(p.payload.link) ? `<div class="plink">${esc(p.payload.link)}</div>` : ''}</div></div>`; }).join('')
+    : '<p class="empty">Comparte artículos, referencias o reflexiones para el proyecto.</p>';
+}
+
+/* ============================ MODALES ============================ */
+function openModal(html){ $('#modalBody').innerHTML = html; $('#modal').hidden = false; const f = $('#modalBody [autofocus]'); if (f) setTimeout(() => f.focus(), 30); }
+function closeModal(){ $('#modal').hidden = true; S.openPost = null; }
+
+function openNoteModal(id, zone){
+  const t = TPL[S.tpl]; const existing = id ? (S.snap ? (S.snap.payload.notes||[]).find(n => n.id === id) : S.items.get(id)) : null;
+  const z = existing ? existing.zone : zone;
+  if (ro()) {
+    if (!existing) return;
+    return openModal(`<h3>Post-it</h3><p class="muted">${esc(t.name)} · ${esc(zoneTitle(t.id, z))}</p>
+      <div class="note" style="width:100%;min-height:120px;margin-top:12px;background:${noteColor(existing.payload.color)};cursor:default"><div class="txt" style="font-size:14px">${esc(existing.payload.text)}</div><div class="meta"><span>${esc(existing.author)} · ${fmtTime(existing.created_at)}</span></div></div>`);
+  }
+  const color = existing ? existing.payload.color : defaultColor(S.me.name);
+  openModal(`<h3>${existing ? 'Editar post-it' : 'Nuevo post-it'}</h3>
+    <p class="muted" style="margin:0">${esc(t.name)} · ${esc(zoneTitle(t.id, z))}${existing ? ' · agregado por <b>'+esc(existing.author)+'</b>' : ''}</p>
+    <textarea id="noteText" maxlength="280" placeholder="Escribe una idea corta…" autofocus>${esc(existing ? existing.payload.text : '')}</textarea>
+    <div class="swatches">${NOTE_COLORS.map(c => `<input type="radio" name="nc" id="nc_${c.id}" value="${c.id}" ${c.id===color?'checked':''}><label for="nc_${c.id}" style="background:${c.c}" title="${c.id}"></label>`).join('')}</div>
+    <p class="pmeta">Aparecerá con tu nombre: <b>${esc(existing ? existing.author : S.me.name)}</b>. Ctrl + Enter para guardar.</p>
+    <div class="modal-actions">
+      ${existing ? `<button class="btn danger left" data-act="delNote" data-id="${esc(existing.id)}">Eliminar</button>` : ''}
+      <button class="btn ghost" data-act="closeModal">Cancelar</button>
+      <button class="btn primary" data-act="saveNote" data-id="${existing ? esc(existing.id) : ''}" data-zone="${esc(z)}">Guardar post-it</button>
+    </div>`);
+}
+function saveNote(id, zone){
+  const text = $('#noteText').value.trim(); if (!text) { $('#noteText').focus(); return; }
+  const color = ($('input[name="nc"]:checked') || {}).value || defaultColor(S.me.name);
+  if (id) {
+    const prev = S.items.get(id); if (!prev) return closeModal();
+    put({ ...prev, payload:{ ...prev.payload, text, color, editedBy:S.me.name } });
+  } else {
+    const t = TPL[S.tpl], payload = { text, color };
+    if (t.layout === 'free') {
+      let x, y; do { x = 3 + Math.random()*80; y = 4 + Math.random()*78; } while (Math.abs(x-44) < 14 && Math.abs(y-45) < 14);
+      payload.x = Math.round(x*10)/10; payload.y = Math.round(y*10)/10;
+    }
+    put({ id:S.me.room + '|n|' + uid(), kind:'note', template:t.id, zone, author:S.me.name, payload });
+  }
+  closeModal();
+}
+
+function openGuide(){
+  const t = TPL[S.tpl];
+  openModal(`<div class="guide"><p class="eyebrow">${esc(t.stage)}</p><h3>${esc(t.name)}</h3>
+    <p><b>Objetivo:</b> ${esc(t.guide.obj)}</p><b>Paso a paso</b><ol>${t.guide.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>
+    <div class="example">${esc(t.guide.ex)}</div>
+    <p class="pmeta" style="margin-top:14px">Plantilla basada en los itinerarios de Designpedia · Thinkers Co.</p></div>`);
+}
+
+function openShare(){
+  const notes = live('note'), ms = members(), next = live('submission').length + 1;
+  const counts = TEMPLATES.map(t => [t.name, notes.filter(n => n.template === t.id).length]);
+  openModal(`<h3>Compartir con el profesor</h3>
+    <p class="muted" style="margin:0 0 10px">Se guardará una <b>versión ${next}</b> congelada de las 8 plantillas. El equipo puede seguir trabajando y volver a compartir después.</p>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:12.5px;background:var(--cream);border-radius:10px;padding:10px 12px">
+      ${counts.map(([n,c]) => `<span>${esc(n)}</span><b style="color:${c?'var(--sage-dd)':'var(--muted)'}">${c}</b>`).join('')}</div>
+    <p class="pmeta" style="margin-top:8px">Equipo: ${esc(ms.map(m => m.name).join(', '))}</p>
+    <textarea id="shareMsg" maxlength="400" placeholder="Mensaje para el profesor (opcional)"></textarea>
+    <div class="modal-actions"><button class="btn ghost" data-act="closeModal">Cancelar</button>
+      <button class="btn primary" data-act="doShare">${ico('send')} Confirmar y compartir</button></div>`);
+}
+async function doShare(){
+  const msg = $('#shareMsg').value.trim();
+  const version = live('submission').reduce((m,s) => Math.max(m, s.payload.version||0), 0) + 1;
+  const notes = live('note').map(n => ({ id:n.id, template:n.template, zone:n.zone, author:n.author, created_at:n.created_at, payload:{ text:n.payload.text, color:n.payload.color, x:n.payload.x, y:n.payload.y } }));
+  const fields = {}; live('field').forEach(f => { fields[f.template+'|'+f.zone] = f.payload.value; });
+  put({ id:S.me.room + '|s|' + uid(), kind:'submission', author:S.me.name, payload:{ version, message:msg, notes, fields, members:members().map(m => m.name) } });
+  const ok = await Sync.flush();
+  openModal(`<h3>¡Listo! Versión ${version} compartida</h3>
+    <p class="muted" style="margin:0">${ok ? 'El trabajo quedó guardado. Envía este enlace a tu profesor para que lo revise (solo lectura):' : 'Se guardará en cuanto regrese la conexión. Este es el enlace para tu profesor:'}</p>
+    <div class="linkbox"><code>${esc(profLink())}</code><button class="btn sm" data-copy="prof">${ico('copy')} Copiar</button></div>
+    ${Sync.mode === 'local' ? '<p class="notice">Modo local: el profesor solo podrá abrir el enlace cuando la app esté conectada a Supabase y publicada.</p>' : ''}
+    <div class="modal-actions"><button class="btn" data-act="print">${ico('print')} Imprimir esta plantilla</button><button class="btn primary" data-act="closeModal">Cerrar</button></div>`);
+}
+
+function openNewPost(){
+  openModal(`<h3>Nueva publicación</h3><p class="muted" style="margin:0">Comparte un artículo, una referencia o una reflexión con tu equipo.</p>
+    <div class="field" style="margin-top:14px"><label>Título</label><input class="input" id="postTitle" maxlength="100" autofocus></div>
+    <div class="field"><label>Enlace (opcional)</label><input class="input" id="postLink" maxlength="400" placeholder="https://…"></div>
+    <div class="field"><label>Texto</label><textarea id="postText" maxlength="2000" style="margin-top:0"></textarea></div>
+    <div class="modal-actions"><button class="btn ghost" data-act="closeModal">Cancelar</button><button class="btn primary" data-act="savePost">Publicar</button></div>`);
+}
+function savePost(){
+  const title = $('#postTitle').value.trim(), text = $('#postText').value.trim(), link = $('#postLink').value.trim();
+  if (!title && !text) { $('#postTitle').focus(); return; }
+  if (link && !safeLink(link)) { toast('El enlace debe empezar con http:// o https://'); return; }
+  put({ id:S.me.room + '|b|' + uid(), kind:'blog', author:S.me.name, payload:{ title, text, link } });
+  closeModal(); toast('Publicado en el muro');
+}
+function openPost(id){
+  const p = S.items.get(id); if (!p) return;
+  S.openPost = id;
+  const link = safeLink(p.payload.link);
+  openModal(`<p class="eyebrow">Blog / Muro</p><h3>${esc(p.payload.title || 'Sin título')}</h3>
+    <p class="pmeta">${esc(p.author)} · ${fmtTime(p.created_at)}</p>
+    ${p.payload.text ? `<p style="white-space:pre-wrap">${esc(p.payload.text)}</p>` : ''}
+    ${link ? `<p><a class="plink" href="${esc(link)}" target="_blank" rel="noopener noreferrer">${esc(link)}</a></p>` : ''}
+    <h4 style="margin:18px 0 4px;font-size:13px;color:var(--sage-dd)">Comentarios</h4>
+    <div id="postComments"></div>
+    <form id="commentForm" class="chat-form" style="padding:10px 0 0;border:0"><input id="commentInput" maxlength="600" placeholder="Escribe un comentario…" autocomplete="off"><button class="send" aria-label="Comentar">${ico('send')}</button></form>
+    ${p.author === S.me.name && !S.me.prof ? `<div class="modal-actions"><button class="btn danger sm left" data-act="delPost" data-id="${esc(p.id)}">Eliminar publicación</button></div>` : ''}`);
+  renderPostComments();
+}
+function renderPostComments(){
+  const box = $('#postComments'); if (!box) return;
+  const cs = live('blogc').filter(c => c.payload.parent === S.openPost).sort(byCreated);
+  box.innerHTML = cs.length ? cs.map(c => `<div class="comment">${avatar(c.author)}<div><div class="who" style="font-size:12px;font-weight:700;color:var(--sage-dd)">${esc(c.author)} <span class="pmeta">${fmtTime(c.created_at)}</span></div><div style="font-size:12.5px;white-space:pre-wrap">${esc(c.payload.text)}</div></div></div>`).join('')
+    : '<p class="empty">Sin comentarios aún.</p>';
+}
+
+/* ============================ EVENTOS ============================ */
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act],[data-go],[data-tpl],[data-add],[data-edit],[data-snap],[data-post],[data-copy],[data-back],.note');
+  if (!el) return;
+  if (e.target === $('#modal')) return;
+  if (el.dataset.go) return go(el.dataset.go);
+  if (el.hasAttribute('data-back')) return S.snap ? go('snapshot', { snap:S.snap }) : go('itinerarios');
+  if (el.dataset.tpl) return go('template', { tpl:el.dataset.tpl, snap:S.view === 'snapshot' ? S.snap : null });
+  if (el.dataset.add) return openNoteModal(null, el.dataset.add);
+  if (el.dataset.edit) return openNoteModal(el.dataset.edit);
+  if (el.dataset.snap) return go('snapshot', { snap:S.items.get(el.dataset.snap) });
+  if (el.dataset.post) return openPost(el.dataset.post);
+  if (el.dataset.copy) return copyText(el.dataset.copy === 'prof' ? profLink() : inviteLink());
+  if (el.classList.contains('note')) {
+    if (el.closest('.free-notes') || !el.dataset.id) return;
+    return openNoteModal(el.dataset.id);
+  }
+  const act = el.dataset.act;
+  if (act === 'closeModal') closeModal();
+  else if (act === 'saveNote') saveNote(el.dataset.id, el.dataset.zone);
+  else if (act === 'delNote') { if (confirm('¿Eliminar este post-it para todo el equipo?')) { const p = S.items.get(el.dataset.id); if (p) put({ ...p, payload:{ ...p.payload, deleted:true } }); closeModal(); } }
+  else if (act === 'guide') openGuide();
+  else if (act === 'share') openShare();
+  else if (act === 'doShare') doShare();
+  else if (act === 'save') Sync.flush().then(ok => toast(ok ? (Sync.mode === 'local' ? 'Guardado en este navegador' : 'Cambios guardados en la nube ✓') : 'Sin conexión: se guardará al reconectar'));
+  else if (act === 'print') { closeModal(); setTimeout(() => window.print(), 100); }
+  else if (act === 'newPost') openNewPost();
+  else if (act === 'savePost') savePost();
+  else if (act === 'delPost') { if (confirm('¿Eliminar esta publicación?')) { const p = S.items.get(el.dataset.id); if (p) put({ ...p, payload:{ ...p.payload, deleted:true } }); closeModal(); } }
+  else if (act === 'logout') { Sync.leave(); LS.del('nevoa_session'); location.href = baseUrl() + '?sala=' + encodeURIComponent(S.me.room) + (S.me.prof ? '&profesor=1' : ''); }
+});
+$('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !$('#modal').hidden) closeModal();
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && $('#noteText')) { const b = $('[data-act="saveNote"]'); if (b) b.click(); }
+});
+
+/* campos de texto compartidos */
+const fieldTimers = {};
+document.addEventListener('input', e => {
+  const el = e.target;
+  if (el.dataset && el.dataset.field && !ro()) {
+    const [t,k] = el.dataset.field.split('|');
+    clearTimeout(fieldTimers[el.dataset.field]);
+    fieldTimers[el.dataset.field] = setTimeout(() => put({ id:fieldId(t,k), kind:'field', template:t, zone:k, author:S.me.name, payload:{ value:el.value } }), 450);
+  }
+  if (el.id === 'searchInput') {
+    S.search = el.value.trim();
+    if (S.search.length >= 2) { if (S.view !== 'search') S.back = { view:S.view, tpl:S.tpl, snap:S.snap }; S.view = 'search'; S.snap = null; renderView(); renderCtx(); }
+    else if (S.view === 'search') { const b = S.back || { view:'itinerarios' }; S.view = b.view; S.tpl = b.tpl; S.snap = b.snap; renderView(); renderCtx(); refreshFields(); }
+  }
+});
+
+document.addEventListener('submit', e => {
+  e.preventDefault();
+  if (e.target.id === 'chatForm') {
+    const i = $('#chatInput'), text = i.value.trim(); if (!text) return;
+    put({ id:S.me.room + '|c|' + uid(), kind:'chat', author:S.me.name, payload:{ text, tpl:S.view === 'template' ? S.tpl : null } });
+    i.value = ''; const l = $('#chatList'); setTimeout(() => l.scrollTop = l.scrollHeight, 50);
+  }
+  if (e.target.id === 'commentForm') {
+    const i = $('#commentInput'), text = i.value.trim(); if (!text) return;
+    put({ id:S.me.room + '|k|' + uid(), kind:'blogc', author:S.me.name, payload:{ parent:S.openPost, text } });
+    i.value = '';
+  }
+  if (e.target.id === 'loginForm') doLogin();
+});
+
+/* arrastrar post-its en Stakeholders Maps */
+document.addEventListener('pointerdown', e => {
+  const n = e.target.closest('.free-notes .note');
+  if (!n || e.target.closest('button')) return;
+  if (ro()) { S.dragging = { id:n.dataset.id, el:n, click:true, sx:e.clientX, sy:e.clientY }; return; }
+  const board = n.parentElement.getBoundingClientRect(), r = n.getBoundingClientRect();
+  S.dragging = { id:n.dataset.id, el:n, board, w:r.width, h:r.height, dx:e.clientX - r.left, dy:e.clientY - r.top, sx:e.clientX, sy:e.clientY, moved:false };
+  try { n.setPointerCapture(e.pointerId); } catch(_){}
+  n.style.zIndex = 10;
+});
+document.addEventListener('pointermove', e => {
+  const d = S.dragging; if (!d || d.click) return;
+  if (!d.moved && Math.hypot(e.clientX - d.sx, e.clientY - d.sy) < 4) return;
+  d.moved = true;
+  const maxX = 100 - d.w / d.board.width * 100, maxY = 100 - d.h / d.board.height * 100;
+  d.x = Math.max(0, Math.min(maxX, (e.clientX - d.dx - d.board.left) / d.board.width * 100));
+  d.y = Math.max(0, Math.min(maxY, (e.clientY - d.dy - d.board.top) / d.board.height * 100));
+  d.el.style.left = d.x + '%'; d.el.style.top = d.y + '%';
+});
+document.addEventListener('pointerup', () => {
+  const d = S.dragging; if (!d) return; S.dragging = null;
+  if (d.moved) { const p = S.items.get(d.id); if (p) put({ ...p, payload:{ ...p.payload, x:Math.round(d.x*10)/10, y:Math.round(d.y*10)/10 } }); }
+  else openNoteModal(d.id);
+  scheduleRefresh();
+});
+
+/* ============================ SESIÓN ============================ */
+const params = new URLSearchParams(location.search);
+const IS_PROF = params.get('profesor') === '1';
+const cleanRoom = s => String(s || '').toUpperCase().trim().replace(/\s+/g, '-').replace(/[^A-Z0-9_-]/g, '').slice(0, 30);
+function myUid(){ let id = LS.get('nevoa_uid'); if (!id) { id = uid(); LS.set('nevoa_uid', id); } return id; }
+
+function showLogin(){
+  $('#login').hidden = false; $('#app').hidden = true;
+  if (!Sync.configured()) $('#lgLocal').hidden = false;
+  const sala = cleanRoom(params.get('sala'));
+  if (sala) $('#lgRoom').value = sala;
+  const last = LS.get('nevoa_last') || {};
+  if (last.name) $('#lgName').value = last.name;
+  if (last.role) $('#lgRole').value = last.role;
+  if (!sala && last.room) $('#lgRoom').value = last.room;
+  if (IS_PROF) {
+    $('#lgEyebrow').textContent = 'Vista del profesor';
+    $('#lgTitle').textContent = 'Revisa el trabajo del equipo';
+    $('#lgRoleWrap').hidden = true; $('#lgProjWrap').hidden = true;
+    $('#lgBtn').textContent = 'Ver entregas del equipo';
+    $('#lgHint').textContent = 'Verás las versiones que el equipo compartió contigo, en modo solo lectura. Puedes dejar comentarios en el chat o en el blog.';
+  }
+  setTimeout(() => ($('#lgName').value ? $('#lgRoom') : $('#lgName')).focus(), 50);
+}
+function doLogin(){
+  const name = $('#lgName').value.trim().replace(/\s+/g, ' ');
+  const room = cleanRoom($('#lgRoom').value);
+  if (!name) return $('#lgName').focus();
+  if (!room) return $('#lgRoom').focus();
+  const me = { id:myUid(), name, role:IS_PROF ? 'Profesor' : $('#lgRole').value.trim(), room, project:IS_PROF ? '' : $('#lgProject').value.trim(), prof:IS_PROF };
+  LS.set('nevoa_last', { name, role:me.role, room });
+  enter(me);
+}
+async function enter(me){
+  S.me = me; LS.set('nevoa_session', me);
+  $('#login').hidden = true; $('#app').hidden = false;
+  if (params.get('sala') !== me.room || IS_PROF !== !!me.prof) history.replaceState(null, '', '?sala=' + encodeURIComponent(me.room) + (me.prof ? '&profesor=1' : ''));
+  go(me.prof ? 'entregas' : 'home');
+  await Sync.start();
+  if (!me.prof) {
+    put({ id:me.room + '|m|' + me.name.toLowerCase(), kind:'member', author:me.name, payload:{ role:me.role } });
+    if (me.project && !fieldVal('global','proyecto')) put({ id:fieldId('global','proyecto'), kind:'field', template:'global', zone:'proyecto', author:me.name, payload:{ value:me.project } });
+  }
+  scheduleRefresh();
+}
+
+(function boot(){
+  const saved = LS.get('nevoa_session'), sala = cleanRoom(params.get('sala'));
+  if (saved && saved.name && saved.room && (!sala || saved.room === sala) && !!saved.prof === IS_PROF) enter(saved);
+  else showLogin();
+})();
+</script>
+</body>
+</html>
